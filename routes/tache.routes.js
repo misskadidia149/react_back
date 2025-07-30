@@ -3,32 +3,36 @@ const router = express.Router();
 const tacheController = require('../controllers/tache.controller');
 const authMiddleware = require('../middleware/authMiddleware');
 const roleMiddleware = require('../middleware/role.middleware');
-const upload = require('../config/upload');
+const { upload, handleUploadErrors } = require('../config/upload');
 
-// Créer une tâche (enseignant seulement)
+// 📌 Créer une tâche (enseignant uniquement)
 router.post(
   '/upload',
   authMiddleware,
   roleMiddleware(['Enseignant']),
   upload.single('fichierJoint'),
+  handleUploadErrors,
   tacheController.createTache
 );
 
-// Gestion individuelle des tâches
+// 📌 Obtenir une tâche par ID (authentifié)
 router.get(
   '/:id',
   authMiddleware,
   tacheController.getTache
 );
 
+// 📌 Modifier une tâche (enseignant uniquement)
 router.put(
   '/:id',
   authMiddleware,
   roleMiddleware(['Enseignant']),
   upload.single('fichierJoint'),
+  handleUploadErrors,
   tacheController.updateTache
 );
 
+// 📌 Supprimer une tâche (enseignant uniquement)
 router.delete(
   '/:id',
   authMiddleware,
@@ -36,7 +40,7 @@ router.delete(
   tacheController.deleteTache
 );
 
-// Lister les tâches d'un module
+// 📌 Lister les tâches d’un module (étudiant ou enseignant)
 router.get(
   '/module/:id',
   authMiddleware,

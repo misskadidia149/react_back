@@ -5,6 +5,12 @@ const authMiddleware = require('../middleware//authMiddleware');
 const roleMiddleware = require('../middleware//role.middleware');
 
 // Routes pour les modules
+router.post('/',
+  authMiddleware,
+  roleMiddleware(['Enseignant']),
+  moduleController.createModule
+);
+
 router.post('/upload', 
   authMiddleware, 
   roleMiddleware(['Enseignant']), 
