@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const correctionController = require('../controllers/correction.controller');
-const authMiddleware = require('../middleware//authMiddleware');
-const roleMiddleware = require('../middleware//role.middleware');
+const authMiddleware = require('../middleware/authMiddleware');
+const roleMiddleware = require('../middleware/role.middleware');
 const upload = require('../config/upload');
 
 // Créer une correction (enseignant seulement)

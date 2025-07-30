@@ -1,0 +1,14 @@
+Pour etudiantsAbsence:
+u fltre initiale pour les classes qui ont cours a l'heure et jour actu 👌 
+la liste des étudiants (nom et prenom classe niveau heure justifié?) 👌 
+u boutton pour afficher la liste des absences de chacun 👌 
+
+
+
+IDEES
+
+ajouter une action pour faire passez des étudiantes (ou toute une classe) d'une classe à une autre depuis les parametre{
+Nouvelle année scolaire->liste des classes/filiere dans un modal avec un bouton 6>un autre modal qui contient la classe nouvelle et une fois le bouton cliquez l'ancienne classe se vide et la nouvelle prends }
+
+Projet tutoré
+
