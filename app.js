@@ -20,6 +20,12 @@ app.use('/api/groupes', groupeRoutes);
 const tacheRoutes = require('./routes/tache.routes');
 app.use('/api/taches', tacheRoutes);
 
+const soumissionRoutes = require('./routes/soumission.routes');
+app.use('/api/soumissions', soumissionRoutes);
+
+const progressionRoutes = require('./routes/progression.routes');
+app.use('/api/progression', progressionRoutes);
+
 // Démarrer le serveur
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));

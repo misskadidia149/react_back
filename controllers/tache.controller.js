@@ -6,12 +6,12 @@ module.exports = {
   async createTache(req, res, next) {
     try {
       const { titre, description, deadline, moduleId, groupeId } = req.body;
-      const createurId = req.user.id;
+      const enseignantId = req.user.id; // L'ID de l'enseignant connecté
 
       // Vérifier que le module appartient à l'enseignant
       const [modules] = await db.execute(
         'SELECT idModule FROM module WHERE idModule = ? AND enseignantId = ?',
-        [moduleId, createurId]
+        [moduleId, enseignantId]
       );
       
       if (modules.length === 0) {
@@ -33,10 +33,10 @@ module.exports = {
       // Gérer le fichier joint
       const fichierJoint = req.file ? req.file.path : null;
 
-      // Créer la tâche
+      // Créer la tâche (sans createurId)
       const [result] = await db.execute(
-        'INSERT INTO tache (titre, description, deadline, fichierJoint, moduleId, groupeId, createurId) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [titre, description, deadline, fichierJoint, moduleId, groupeId, createurId]
+        'INSERT INTO tache (titre, description, deadline, fichierJoint, moduleId, groupeId) VALUES (?, ?, ?, ?, ?, ?)',
+        [titre, description, deadline, fichierJoint, moduleId, groupeId]
       );
 
       res.status(201).json({
@@ -58,15 +58,11 @@ module.exports = {
     try {
       const tacheId = req.params.id;
 
-      // Récupérer la tâche avec les infos du module et créateur
+      // Récupérer la tâche avec les infos du module (sans createur)
       const [taches] = await db.execute(
-        `SELECT t.*, 
-         m.nom AS moduleNom, 
-         u.nom AS createurNom, 
-         u.prenom AS createurPrenom
+        `SELECT t.*, m.nom AS moduleNom
          FROM tache t
          JOIN module m ON t.moduleId = m.idModule
-         JOIN utilisateurs u ON t.createurId = u.id
          WHERE t.idTache = ?`,
         [tacheId]
       );
@@ -76,7 +72,7 @@ module.exports = {
       }
 
       // Vérifier les permissions
-      await this.verifyTacheAccess(tacheId, req.user.id);
+      await module.exports.verifyTacheAccess(tacheId, req.user.id);
 
       res.status(200).json({
         status: 'success',
@@ -93,11 +89,14 @@ module.exports = {
     try {
       const tacheId = req.params.id;
       const { titre, description, deadline, moduleId, groupeId } = req.body;
+      const enseignantId = req.user.id;
 
-      // Vérifier que la tâche existe et appartient à l'enseignant
+      // Vérifier que la tâche existe et que le module appartient à l'enseignant
       const [taches] = await db.execute(
-        'SELECT * FROM tache WHERE idTache = ? AND createurId = ?',
-        [tacheId, req.user.id]
+        `SELECT t.* FROM tache t
+         JOIN module m ON t.moduleId = m.idModule
+         WHERE t.idTache = ? AND m.enseignantId = ?`,
+        [tacheId, enseignantId]
       );
       
       if (taches.length === 0) {
@@ -136,11 +135,14 @@ module.exports = {
   async deleteTache(req, res, next) {
     try {
       const tacheId = req.params.id;
+      const enseignantId = req.user.id;
 
-      // Vérifier que la tâche existe et appartient à l'enseignant
+      // Vérifier que la tâche existe et que le module appartient à l'enseignant
       const [taches] = await db.execute(
-        'SELECT fichierJoint FROM tache WHERE idTache = ? AND createurId = ?',
-        [tacheId, req.user.id]
+        `SELECT t.fichierJoint FROM tache t
+         JOIN module m ON t.moduleId = m.idModule
+         WHERE t.idTache = ? AND m.enseignantId = ?`,
+        [tacheId, enseignantId]
       );
       
       if (taches.length === 0) {
@@ -172,9 +174,9 @@ module.exports = {
       const moduleId = req.params.id;
 
       // Vérifier l'accès au module
-      await this.verifyModuleAccess(moduleId, req.user.id);
-
-      // Récupérer les tâches
+// ...existing code...
+await module.exports.verifyModuleAccess(moduleId, req.user.id);
+// ...existing code...      // Récupérer les tâches
       const [taches] = await db.execute(
         `SELECT t.*, g.nom AS groupeNom 
          FROM tache t
@@ -197,14 +199,14 @@ module.exports = {
   async verifyTacheAccess(tacheId, userId) {
     const [access] = await db.execute(
       `SELECT 1 FROM tache t
-       LEFT JOIN module m ON t.moduleId = m.idModule
-       LEFT JOIN groupe_membre gm ON t.groupeId = gm.groupeId
+       JOIN module m ON t.moduleId = m.idModule
+       LEFT JOIN groupe g ON t.groupeId = g.idGroupe
+       LEFT JOIN groupe_membre gm ON g.idGroupe = gm.groupeId
        WHERE t.idTache = ? AND (
-         t.createurId = ? OR
          m.enseignantId = ? OR
          gm.utilisateurId = ?
        )`,
-      [tacheId, userId, userId, userId]
+      [tacheId, userId, userId]
     );
     
     if (access.length === 0) {

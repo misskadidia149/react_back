@@ -1,0 +1,163 @@
+CREATE TABLE Utilisateurs (
+    id_utilisateur INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    prenom VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    mot_de_passe VARCHAR(255) NOT NULL,
+    id_role VARCHAR(255) NOT NULL,
+    sexe ENUM('M', 'F') NOT NULL,
+    type ENUM('Etudiant', 'Enseignant', 'Membre') NOT NULL,
+    telephone VARCHAR(15),
+    adresse TEXT,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE Role(
+    id_role: INT
+    nom: VARCHAR{50}
+    description: VARCHAR{50}
+    acces: VARCHAR{50}
+)
+
+CREATE TABLE Annexes (
+    id_annexe INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    adresse TEXT NOT NULL,
+    ville VARCHAR(50),
+    region VARCHAR(50)
+);
+
+
+CREATE TABLE Filieres (
+    id_filiere INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    description TEXT,
+    niveau ENUM('Primaire', 'Secondaire', 'Licence', 'Master1', 'Master1', 'Doctorat') NOT NULL,
+    id_annexe INT,
+    FOREIGN KEY (id_annexe) REFERENCES Annexes(id_annexe)
+);
+
+CREATE TABLE Modules (
+    id_module INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    code_module VARCHAR(20) UNIQUE NOT NULL,
+    description TEXT,
+    credits INT NOT NULL,
+    syllabus TEXT,
+    id_filiere INT,
+    FOREIGN KEY (id_filiere) REFERENCES Filieres(id_filiere)
+);
+
+CREATE TABLE Cours (
+    id_cours INT AUTO_INCREMENT PRIMARY KEY,
+    id_module INT,
+    id_professeur INT,
+    semestre ENUM('Semestre 1', 'Semestre 2','Semestre 3','Semestre 4','Licence','Master1','Master2','Doctorat') NOT NULL,
+    annee_academique VARCHAR(9) NOT NULL,
+    FOREIGN KEY (id_module) REFERENCES Modules(id_module),
+    FOREIGN KEY (id_professeur) REFERENCES Utilisateurs(id_utilisateur)
+);
+
+
+CREATE TABLE Etudiants (
+    matricule VARCHAR(20) PRIMARY KEY,
+    id_utilisateur INT,
+    date_naissance DATE NOT NULL,
+    id_filiere INT,
+    FOREIGN KEY (id_utilisateur) REFERENCES Utilisateurs(id_utilisateur),
+    FOREIGN KEY (id_filiere) REFERENCES Filieres(id_filiere)
+);
+
+CREATE TABLE Enseignant (
+    matricule VARCHAR(20) PRIMARY KEY,
+    id_utilisateur INT,
+    specialite
+    FOREIGN KEY (id_utilisateur) REFERENCES Utilisateurs(id_utilisateur),
+);
+
+
+CREATE TABLE EmploisDuTemps (
+    id_emploi INT AUTO_INCREMENT PRIMARY KEY,
+    id_cours INT,
+    jour ENUM('Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'),
+    heure_debut TIME NOT NULL,
+    heure_fin TIME NOT NULL,
+    salle VARCHAR(50),
+    FOREIGN KEY (id_cours) REFERENCES Cours(id_cours)
+);
+
+
+CREATE TABLE Notes (
+    id_note INT AUTO_INCREMENT PRIMARY KEY,
+    id_etudiant INT,
+    id_cours INT,
+    note_class DECIMAL(5, 2),
+    note_exam DECIMAL(5, 2),
+    annee_academique VARCHAR(9),
+    date_saisie TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_etudiant) REFERENCES Etudiants(id_etudiant),
+    FOREIGN KEY (id_cours) REFERENCES Cours(id_cours)
+);
+
+
+CREATE TABLE Paiements (
+    id_paiement INT AUTO_INCREMENT PRIMARY KEY,
+    id_etudiant INT,
+    montant DECIMAL(10, 2) NOT NULL,
+    date_paiement DATE NOT NULL,
+    type_paiement ENUM('Inscription', 'Scolarité', 'Autre') NOT NULL,
+    reference_paiement VARCHAR(100) UNIQUE NOT NULL,
+    FOREIGN KEY (id_etudiant) REFERENCES Etudiants(id_etudiant)
+);
+
+
+
+
+2. Relations et fonctionnalités principales
+Étudiants
+Connexion : Les étudiants peuvent se connecter via la table Utilisateurs.
+Accès individuel :
+Voir leurs emplois du temps via EmploisDuTemps.
+Consulter leurs notes via Notes.
+Vérifier leurs paiements via Paiements.
+Professeurs
+Connexion : Les professeurs accèdent également via la table Utilisateurs.
+Actions :
+Saisir les notes des étudiants (table Notes).
+Consulter la liste des étudiants inscrits à leurs cours (table Cours).
+Administration
+	Création :
+Ajouter des filières et des modules (tables Filieres et Modules).
+Ajouter des etudiant et les professeurs (table 
+Affecter des professeurs aux cours (table Cours).
+Générer les emplois du temps (table EmploisDuTemps).
+	Gestion :
+Suivre les inscriptions et les paiements (tables Etudiants et Paiements).
+Fournir les syllabus pour les modules.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EXEMPLE DE ROLE A METTRE 
+UPDATE role 
+SET permissions = '[{"action": "create_user"}, {"action": "delete_user"}]' 
+WHERE nom = 'ADMIN';
+
