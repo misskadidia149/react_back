@@ -8,7 +8,7 @@ module.exports = {
       const { soumissionId, commentaires, note } = req.body;
       const enseignantId = req.user.id;
 
-      // Vérifier que la soumission existe
+      // Vérifier que la soumission existe 
       const [soumissions] = await db.execute(
         `SELECT s.*, t.moduleId 
          FROM soumission s
