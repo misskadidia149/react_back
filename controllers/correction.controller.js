@@ -5,10 +5,15 @@ const fs = require('fs');
 module.exports = {
   async createCorrection(req, res, next) {
     try {
-      const { soumissionId, commentaires, note } = req.body;
+      const { soumissionId, commentaires } = req.body;
       const enseignantId = req.user.id;
 
-      // Vérifier que la soumission existe 
+      // Validation des champs obligatoires
+      if (!soumissionId) {
+        throw new AppError('L\'ID de soumission est requis', 400);
+      }
+
+      // Vérifier que la soumission existe
       const [soumissions] = await db.execute(
         `SELECT s.*, t.moduleId 
          FROM soumission s
@@ -32,17 +37,23 @@ module.exports = {
       }
 
       // Gérer les fichiers uploadés
-      const fichiers = req.files.map(file => ({
+      const fichiers = req.files?.map(file => ({
         nom: file.originalname,
         chemin: file.path,
         type: file.mimetype,
         taille: file.size
-      }));
+      })) || [];
 
-      // Créer la correction
+      // Créer la correction (sans correcteurId)
       const [result] = await db.execute(
-        'INSERT INTO correction (soumissionId, commentaires, fichiersJoint, note, correcteurId) VALUES (?, ?, ?, ?, ?)',
-        [soumissionId, commentaires, JSON.stringify(fichiers), note, enseignantId]
+        `INSERT INTO correction 
+         (soumissionId, commentaires, fichiersJoint, dateCorrection) 
+         VALUES (?, ?, ?, NOW())`,
+        [
+          soumissionId, 
+          commentaires || null,
+          fichiers.length > 0 ? JSON.stringify(fichiers) : null
+        ]
       );
 
       res.status(201).json({
@@ -66,17 +77,16 @@ module.exports = {
     try {
       const soumissionId = req.params.id;
 
+      if (!soumissionId) {
+        throw new AppError('L\'ID de soumission est requis', 400);
+      }
+
       // Vérifier l'accès à la soumission
       await this.verifySoumissionAccess(soumissionId, req.user.id);
 
-      // Récupérer la correction
+      // Récupérer la correction (version simplifiée sans correcteurId)
       const [corrections] = await db.execute(
-        `SELECT c.*, 
-         u.nom AS correcteurNom, 
-         u.prenom AS correcteurPrenom
-         FROM correction c
-         JOIN utilisateurs u ON c.correcteurId = u.id
-         WHERE c.soumissionId = ?`,
+        `SELECT c.* FROM correction c WHERE c.soumissionId = ?`,
         [soumissionId]
       );
 
@@ -87,10 +97,12 @@ module.exports = {
         });
       }
 
-      // Convertir les fichiers JSON en objets
+      // Convertir les fichiers JSON en objets si présents
       const correction = {
         ...corrections[0],
-        fichiersJoint: JSON.parse(corrections[0].fichiersJoint)
+        fichiersJoint: corrections[0].fichiersJoint 
+          ? JSON.parse(corrections[0].fichiersJoint) 
+          : []
       };
 
       res.status(200).json({
@@ -102,7 +114,6 @@ module.exports = {
     }
   },
 
-  // Méthode utilitaire pour vérifier l'accès à une soumission
   async verifySoumissionAccess(soumissionId, userId) {
     const [access] = await db.execute(
       `SELECT 1 FROM soumission s

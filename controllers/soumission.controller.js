@@ -66,8 +66,7 @@ module.exports = {
       const tacheId = req.params.id;
 
       // Vérifier l'accès à la tâche
-      await this.verifyTacheAccess(tacheId, req.user.id);
-
+ await module.exports.verifyTacheAccess(tacheId, req.user.id);
       // Récupérer les soumissions
       const [soumissions] = await db.execute(
         `SELECT s.*, 
@@ -100,7 +99,7 @@ module.exports = {
       const groupeId = req.params.id;
 
       // Vérifier l'accès au groupe
-      await this.verifyGroupeAccess(groupeId, req.user.id);
+   await module.exports.verifyGroupeAccess(groupeId, req.user.id);
 
       // Récupérer les soumissions
       const [soumissions] = await db.execute(

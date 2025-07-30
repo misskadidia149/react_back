@@ -71,7 +71,7 @@ module.exports = {
 
   async createOrUpdateProgression(req, res, next) {
     try {
-      const { moduleId, groupeId, etape, commentaire } = req.body;
+      const { moduleId, groupeId, etape } = req.body;
       const enseignantId = req.user.id;
 
       // Validation de l'étape
@@ -108,14 +108,14 @@ module.exports = {
       if (existing.length > 0) {
         // Mise à jour
         await db.execute(
-          'UPDATE progression SET etape = ?, commentaire = ?, date = NOW() WHERE idProgression = ?',
-          [etape, commentaire, existing[0].idProgression]
+          'UPDATE progression SET etape = ?, date = NOW() WHERE idProgression = ?',
+          [etape, existing[0].idProgression]
         );
       } else {
         // Création
         await db.execute(
-          'INSERT INTO progression (moduleId, groupeId, etape, commentaire) VALUES (?, ?, ?, ?)',
-          [moduleId, groupeId, etape, commentaire]
+          'INSERT INTO progression (moduleId, groupeId, etape) VALUES (?, ?, ?)',
+          [moduleId, groupeId, etape]
         );
       }
 
